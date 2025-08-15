@@ -6,13 +6,29 @@ import os
 import nltk
 from sklearn.feature_extraction.text import TfidfVectorizer
 
-# Pastikan download resource nltk
-nltk.download('punkt')
-nltk.download('averaged_perceptron_tagger')
+# ===== SAFE NLTK DOWNLOAD =====
+def safe_nltk_download(resource):
+    try:
+        nltk.data.find(resource)
+    except LookupError:
+        try:
+            nltk.download(resource.split("/")[-1])
+        except:
+            st.warning(f"⚠ Tidak bisa download resource NLTK: {resource}, mode NLP dinonaktifkan.")
+            return False
+    return True
 
-# ===== Fungsi NLP =====
+# Pastikan resource ada (jika internet tersedia)
+nltk_ok = True
+for res in ["tokenizers/punkt", "tokenizers/punkt_tab", "taggers/averaged_perceptron_tagger"]:
+    if not safe_nltk_download(res):
+        nltk_ok = False
+
+# ===== NLP Functions =====
 def extract_keywords(text, top_n=10):
     """Ekstrak kata kunci dari Job Description"""
+    if not text.strip():
+        return []
     vectorizer = TfidfVectorizer(stop_words='english')
     tfidf_matrix = vectorizer.fit_transform([text])
     feature_array = vectorizer.get_feature_names_out()
@@ -21,6 +37,8 @@ def extract_keywords(text, top_n=10):
 
 def optimize_tar(tasks):
     """Optimisasi Task → Action → Result"""
+    if not nltk_ok:  # jika resource NLTK tidak lengkap
+        return tasks
     optimized_tasks = []
     for t in tasks:
         words = nltk.word_tokenize(t)
@@ -33,7 +51,7 @@ def optimize_tar(tasks):
         optimized_tasks.append(t)
     return optimized_tasks
 
-# ===== Fungsi buat CV =====
+# ===== CV Generator =====
 def generate_cv(data, photo_path, output_format="docx"):
     doc = Document()
 
@@ -90,18 +108,18 @@ def generate_cv(data, photo_path, output_format="docx"):
     filename_docx = f"CV_ATS_{data['name'].replace(' ', '_')}.docx"
     doc.save(filename_docx)
 
-    # Konversi ke PDF jika dipilih
+    # Konversi PDF
     if output_format == "pdf":
         filename_pdf = filename_docx.replace(".docx", ".pdf")
         convert(filename_docx, filename_pdf)
         return filename_pdf
     return filename_docx
 
-# ===== Streamlit App =====
-st.set_page_config(page_title="ATS CV Builder", layout="wide")
-st.title("📄 ATS-Friendly CV Builder ")
+# ===== STREAMLIT UI =====
+st.set_page_config(page_title="ATS CV Builder (Safe Mode)", layout="wide")
+st.title("📄 ATS-Friendly CV Builder + Foto + Optimisasi (Safe Mode)")
 
-# Job Description Upload
+# Sidebar Job Description
 st.sidebar.header("Job Description (Opsional)")
 jd_text = st.sidebar.text_area("Tempel Job Description di sini")
 jd_file = st.sidebar.file_uploader("atau Upload File .txt", type=["txt"])
@@ -134,7 +152,7 @@ summary = st.text_area("Deskripsikan profil singkat Anda (2-3 kalimat)")
 # Pengalaman Kerja
 st.header("Pengalaman Kerja")
 experience = []
-exp_count = st.number_input("Tulisan berapa banyak pengalaman kerja(Angka)", min_value=0, max_value=10, step=1)
+exp_count = st.number_input("Jumlah pengalaman kerja", min_value=0, max_value=10, step=1)
 for i in range(exp_count):
     st.subheader(f"Pengalaman #{i+1}")
     company = st.text_input(f"Perusahaan #{i+1}")
@@ -145,10 +163,10 @@ for i in range(exp_count):
     tasks_raw = st.text_area(f"Tugas & Pencapaian (pisahkan dengan koma) #{i+1}").split(",")
     tasks_clean = [t.strip() for t in tasks_raw if t.strip()]
 
-    # Optimisasi TAR
+    # Optimisasi TAR jika NLP OK
     tasks_optimized = optimize_tar(tasks_clean)
 
-    # Sisipkan kata kunci ATS dari JD
+    # Tambah keyword dari JD
     if jd_keywords:
         for kw in jd_keywords:
             if kw.lower() not in " ".join(tasks_optimized).lower():
@@ -166,7 +184,7 @@ for i in range(exp_count):
 # Pendidikan
 st.header("Pendidikan")
 education = []
-edu_count = st.number_input("Tuliskan jumlah pendidikan yang ingin diinput", min_value=0, max_value=5, step=1)
+edu_count = st.number_input("Jumlah pendidikan", min_value=0, max_value=5, step=1)
 for i in range(edu_count):
     school = st.text_input(f"Sekolah/Kampus #{i+1}")
     degree = st.text_input(f"Gelar/Jurusan #{i+1}")
@@ -176,7 +194,7 @@ for i in range(edu_count):
 # Sertifikasi
 st.header("Sertifikasi")
 certifications = []
-cert_count = st.number_input("Tuliskan Jumlah sertifikasi yang ingin diinput", min_value=0, max_value=10, step=1)
+cert_count = st.number_input("Jumlah sertifikasi", min_value=0, max_value=10, step=1)
 for i in range(cert_count):
     cert_name = st.text_input(f"Nama Sertifikat #{i+1}")
     issuer = st.text_input(f"Penerbit #{i+1}")
@@ -189,7 +207,7 @@ hard_skills = st.text_area("Hard Skills (pisahkan dengan koma)").split(",")
 soft_skills = st.text_area("Soft Skills (pisahkan dengan koma)").split(",")
 tools = st.text_area("Tools & Software (pisahkan dengan koma)").split(",")
 
-# Pilihan output
+# Pilihan Output
 output_format = st.selectbox("Pilih format output CV", ["docx", "pdf"])
 
 # Generate CV
@@ -210,7 +228,6 @@ if st.button("🚀 Generate CV"):
         "tools": [x.strip() for x in tools if x.strip()]
     }
     filename = generate_cv(data, photo_path, output_format)
-    st.success(f"CV berhasil dibuat: {filename}")
+    st.success(f"✅ CV berhasil dibuat: {filename}")
     with open(filename, "rb") as f:
         st.download_button(f"📥 Download CV ({output_format.upper()})", f, file_name=filename)
-
