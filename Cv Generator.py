@@ -3,77 +3,14 @@ from docx import Document
 from docx.shared import Inches
 from docx2pdf import convert
 import os
-import nltk
-from sklearn.feature_extraction.text import TfidfVectorizer
 
-def optimize_tar(tasks):
-    """Optimisasi Task → Action → Result"""
-    if not nltk_ok:  # kalau resource NLTK tidak lengkap
-        return tasks
-    optimized_tasks = []
-    for t in tasks:
-        try:
-            words = nltk.word_tokenize(t)
-            tagged = nltk.pos_tag(words)
-        except LookupError:
-            # Kalau POS tagger tidak ada, skip NLP supaya tidak error
-            st.warning("⚠ POS tagger NLTK tidak ditemukan, skip optimisasi TAR.")
-            return tasks
-        verbs = [w for w, pos in tagged if pos.startswith('VB')]
-        if not verbs:
-            t = "Mengelola " + t
-        if "%" not in t and "meningkat" not in t.lower():
-            t += " sehingga meningkatkan efisiensi sebesar 10%"
-        optimized_tasks.append(t)
-    return optimized_tasks
+# Fungsi ekstrak kata kunci dari Job Description sederhana (split manual)
+def extract_keywords_simple(text):
+    words = text.split()
+    unique_words = list(set([w.strip(",.!?").lower() for w in words if len(w) > 3]))
+    return unique_words[:10]
 
-
-# ===== SAFE NLTK DOWNLOAD =====
-def safe_nltk_download(resource):
-    try:
-        nltk.data.find(resource)
-    except LookupError:
-        try:
-            nltk.download(resource.split("/")[-1])
-        except:
-            st.warning(f"⚠ Tidak bisa download resource NLTK: {resource}, mode NLP dinonaktifkan.")
-            return False
-    return True
-
-# Pastikan resource ada (jika internet tersedia)
-nltk_ok = True
-for res in ["tokenizers/punkt", "tokenizers/punkt_tab", "taggers/averaged_perceptron_tagger"]:
-    if not safe_nltk_download(res):
-        nltk_ok = False
-
-# ===== NLP Functions =====
-def extract_keywords(text, top_n=10):
-    """Ekstrak kata kunci dari Job Description"""
-    if not text.strip():
-        return []
-    vectorizer = TfidfVectorizer(stop_words='english')
-    tfidf_matrix = vectorizer.fit_transform([text])
-    feature_array = vectorizer.get_feature_names_out()
-    tfidf_sorting = tfidf_matrix.toarray().flatten().argsort()[::-1]
-    return [feature_array[i] for i in tfidf_sorting[:top_n]]
-
-def optimize_tar(tasks):
-    """Optimisasi Task → Action → Result"""
-    if not nltk_ok:  # jika resource NLTK tidak lengkap
-        return tasks
-    optimized_tasks = []
-    for t in tasks:
-        words = nltk.word_tokenize(t)
-        tagged = nltk.pos_tag(words)
-        verbs = [w for w, pos in tagged if pos.startswith('VB')]
-        if not verbs:
-            t = "Mengelola " + t
-        if "%" not in t and "meningkat" not in t.lower():
-            t += " sehingga meningkatkan efisiensi sebesar 10%"
-        optimized_tasks.append(t)
-    return optimized_tasks
-
-# ===== CV Generator =====
+# Fungsi membuat CV
 def generate_cv(data, photo_path, output_format="docx"):
     doc = Document()
 
@@ -130,25 +67,25 @@ def generate_cv(data, photo_path, output_format="docx"):
     filename_docx = f"CV_ATS_{data['name'].replace(' ', '_')}.docx"
     doc.save(filename_docx)
 
-    # Konversi PDF
+    # Konversi PDF jika dipilih
     if output_format == "pdf":
         filename_pdf = filename_docx.replace(".docx", ".pdf")
         convert(filename_docx, filename_pdf)
         return filename_pdf
     return filename_docx
 
-# ===== STREAMLIT UI =====
-st.set_page_config(page_title="ATS CV Builder (Safe Mode)", layout="wide")
-st.title("📄 ATS-Friendly CV Builder + Foto + Optimisasi (Safe Mode)")
+# ===== STREAMLIT APP =====
+st.set_page_config(page_title="ATS CV Builder (No NLP)", layout="wide")
+st.title("📄 ATS-Friendly CV Builder + Foto (Tanpa NLP)")
 
-# Sidebar Job Description
+# Sidebar Job Description (Opsional)
 st.sidebar.header("Job Description (Opsional)")
 jd_text = st.sidebar.text_area("Tempel Job Description di sini")
 jd_file = st.sidebar.file_uploader("atau Upload File .txt", type=["txt"])
 if jd_file:
     jd_text = jd_file.read().decode("utf-8")
 
-jd_keywords = extract_keywords(jd_text) if jd_text else []
+jd_keywords = extract_keywords_simple(jd_text) if jd_text else []
 
 # Informasi Pribadi
 st.header("Informasi Pribadi")
@@ -167,7 +104,7 @@ if photo_file:
     with open(photo_path, "wb") as f:
         f.write(photo_file.read())
 
-# Ringkasan
+# Ringkasan Profil
 st.header("Ringkasan Profil")
 summary = st.text_area("Deskripsikan profil singkat Anda (2-3 kalimat)")
 
@@ -185,14 +122,10 @@ for i in range(exp_count):
     tasks_raw = st.text_area(f"Tugas & Pencapaian (pisahkan dengan koma) #{i+1}").split(",")
     tasks_clean = [t.strip() for t in tasks_raw if t.strip()]
 
-    # Optimisasi TAR jika NLP OK
-    tasks_optimized = optimize_tar(tasks_clean)
-
-    # Tambah keyword dari JD
-    if jd_keywords:
-        for kw in jd_keywords:
-            if kw.lower() not in " ".join(tasks_optimized).lower():
-                tasks_optimized.append(f"Pengalaman terkait {kw}")
+    # Tambahkan kata kunci JD (opsional)
+    for kw in jd_keywords:
+        if kw.lower() not in " ".join(tasks_clean).lower():
+            tasks_clean.append(f"Pengalaman terkait {kw}")
 
     experience.append({
         "company": company,
@@ -200,7 +133,7 @@ for i in range(exp_count):
         "location": location_exp,
         "start_date": start_date,
         "end_date": end_date,
-        "tasks": tasks_optimized
+        "tasks": tasks_clean
     })
 
 # Pendidikan
@@ -253,4 +186,3 @@ if st.button("🚀 Generate CV"):
     st.success(f"✅ CV berhasil dibuat: {filename}")
     with open(filename, "rb") as f:
         st.download_button(f"📥 Download CV ({output_format.upper()})", f, file_name=filename)
-
