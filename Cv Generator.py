@@ -6,6 +6,28 @@ import os
 import nltk
 from sklearn.feature_extraction.text import TfidfVectorizer
 
+def optimize_tar(tasks):
+    """Optimisasi Task → Action → Result"""
+    if not nltk_ok:  # kalau resource NLTK tidak lengkap
+        return tasks
+    optimized_tasks = []
+    for t in tasks:
+        try:
+            words = nltk.word_tokenize(t)
+            tagged = nltk.pos_tag(words)
+        except LookupError:
+            # Kalau POS tagger tidak ada, skip NLP supaya tidak error
+            st.warning("⚠ POS tagger NLTK tidak ditemukan, skip optimisasi TAR.")
+            return tasks
+        verbs = [w for w, pos in tagged if pos.startswith('VB')]
+        if not verbs:
+            t = "Mengelola " + t
+        if "%" not in t and "meningkat" not in t.lower():
+            t += " sehingga meningkatkan efisiensi sebesar 10%"
+        optimized_tasks.append(t)
+    return optimized_tasks
+
+
 # ===== SAFE NLTK DOWNLOAD =====
 def safe_nltk_download(resource):
     try:
@@ -231,3 +253,4 @@ if st.button("🚀 Generate CV"):
     st.success(f"✅ CV berhasil dibuat: {filename}")
     with open(filename, "rb") as f:
         st.download_button(f"📥 Download CV ({output_format.upper()})", f, file_name=filename)
+
