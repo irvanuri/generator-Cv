@@ -73,14 +73,14 @@ def generate_cv(data, photo_path, output_format="docx"):
 
 # ===== STREAMLIT UI =====
 st.set_page_config(page_title="CV Builder", layout="wide")
-st.title("📄 CV Builder Heppy Nugraha")
+st.title("📄 CV Builder")
 
 # Informasi Pribadi
 st.header("Informasi Pribadi")
-name = st.text_input("Nama Lengkap", "HEPPY NUGRAHA, S.P")
-phone = st.text_input("Nomor Telepon", "+6285250101045")
-email = st.text_input("Email", "hepiebleeding@gmail.com")
-address = st.text_area("Alamat", "Jl. Tari Dewa-Dewa 1 No. 17 RT. 14, Kelurahan Guntung, Kecamatan Bontang Utara, Kota Bontang, Kalimantan Timur")
+name = st.text_input("Nama Lengkap", "")
+phone = st.text_input("Nomor Telepon", "")
+email = st.text_input("Email", "")
+address = st.text_area("Alamat", "")
 
 # Upload Foto
 photo_file = st.file_uploader("Upload Foto (Opsional)", type=["jpg", "jpeg", "png"])
@@ -92,20 +92,20 @@ if photo_file:
 
 # Profil
 st.header("Profil Profesional")
-summary = st.text_area("Ringkasan Profil", "Saya Lulusan baru di bidang Agroteknologi dengan kemampuan riset dan kerja tim yang baik...")
+summary = st.text_area("Ringkasan Profil", "")
 
 # Pengalaman Kerja
 st.header("Pengalaman Kerja")
 experience = []
-exp_count = st.number_input("Jumlah pengalaman kerja", min_value=0, max_value=10, value=2)
+exp_count = st.number_input("Jumlah pengalaman kerja", min_value=0, max_value=10, value=0)
 for i in range(exp_count):
     st.subheader(f"Pengalaman #{i+1}")
-    company = st.text_input(f"Perusahaan #{i+1}")
-    job_title = st.text_input(f"Jabatan #{i+1}")
-    location_exp = st.text_input(f"Lokasi #{i+1}")
-    start_date = st.text_input(f"Tanggal Mulai #{i+1}")
-    end_date = st.text_input(f"Tanggal Selesai #{i+1}")
-    tasks = st.text_area(f"Tugas/Pencapaian #{i+1} (pisahkan dengan koma)").split(",")
+    company = st.text_input(f"Perusahaan #{i+1}", "")
+    job_title = st.text_input(f"Jabatan #{i+1}", "")
+    location_exp = st.text_input(f"Lokasi #{i+1}", "")
+    start_date = st.text_input(f"Tanggal Mulai #{i+1}", "")
+    end_date = st.text_input(f"Tanggal Selesai #{i+1}", "")
+    tasks = st.text_area(f"Tugas/Pencapaian #{i+1} (pisahkan dengan koma)", "").split(",")
     experience.append({
         "company": company,
         "job_title": job_title,
@@ -118,25 +118,25 @@ for i in range(exp_count):
 # Pendidikan
 st.header("Pendidikan")
 education = []
-edu_count = st.number_input("Jumlah pendidikan", min_value=0, max_value=5, value=1)
+edu_count = st.number_input("Jumlah pendidikan", min_value=0, max_value=5, value=0)
 for i in range(edu_count):
-    school = st.text_input(f"Sekolah/Kampus #{i+1}", "Universitas Mercu Buana Yogyakarta")
-    degree = st.text_input(f"Gelar/Jurusan #{i+1}", "Sarjana Agroteknologi")
-    year = st.text_input(f"Tahun Lulus #{i+1}", "2024")
-    gpa = st.text_input(f"IPK #{i+1}", "3.29/4.00")
+    school = st.text_input(f"Sekolah/Kampus #{i+1}", "")
+    degree = st.text_input(f"Gelar/Jurusan #{i+1}", "")
+    year = st.text_input(f"Tahun Lulus #{i+1}", "")
+    gpa = st.text_input(f"IPK #{i+1}", "")
     education.append({"school": school, "degree": degree, "year": year, "gpa": gpa})
 
 # Organisasi
 st.header("Pengalaman Organisasi")
 organizations = []
-org_count = st.number_input("Jumlah organisasi", min_value=0, max_value=10, value=3)
+org_count = st.number_input("Jumlah organisasi", min_value=0, max_value=10, value=0)
 for i in range(org_count):
-    name_org = st.text_input(f"Nama Organisasi #{i+1}")
-    role_org = st.text_input(f"Peran #{i+1}")
-    location_org = st.text_input(f"Lokasi #{i+1}")
-    start_org = st.text_input(f"Tanggal Mulai #{i+1}")
-    end_org = st.text_input(f"Tanggal Selesai #{i+1}")
-    desc_org = st.text_area(f"Deskripsi #{i+1} (pisahkan dengan koma)").split(",")
+    name_org = st.text_input(f"Nama Organisasi #{i+1}", "")
+    role_org = st.text_input(f"Peran #{i+1}", "")
+    location_org = st.text_input(f"Lokasi #{i+1}", "")
+    start_org = st.text_input(f"Tanggal Mulai #{i+1}", "")
+    end_org = st.text_input(f"Tanggal Selesai #{i+1}", "")
+    desc_org = st.text_area(f"Deskripsi #{i+1} (pisahkan dengan koma)", "").split(",")
     organizations.append({
         "name": name_org,
         "role": role_org,
@@ -148,12 +148,12 @@ for i in range(org_count):
 
 # Keahlian
 st.header("Kemampuan")
-hard_skills = st.text_area("Hard Skills (pisahkan dengan koma)").split(",")
-soft_skills = st.text_area("Soft Skills (pisahkan dengan koma)").split(",")
+hard_skills = st.text_area("Hard Skills (pisahkan dengan koma)", "").split(",")
+soft_skills = st.text_area("Soft Skills (pisahkan dengan koma)", "").split(",")
 
 # Pencapaian
 st.header("Pencapaian Lainnya")
-achievements = st.text_area("Pencapaian (pisahkan dengan koma)").split(",")
+achievements = st.text_area("Pencapaian (pisahkan dengan koma)", "").split(",")
 
 # Pilihan Output
 output_format = st.selectbox("Pilih format output CV", ["docx", "pdf"])
@@ -173,7 +173,23 @@ if st.button("🚀 Generate CV"):
         "soft_skills": [x.strip() for x in soft_skills if x.strip()],
         "achievements": [x.strip() for x in achievements if x.strip()]
     }
-    filename = generate_cv(data, photo_path, output_format)
-    st.success(f"✅ CV berhasil dibuat: {filename}")
-    with open(filename, "rb") as f:
-        st.download_button(f"📥 Download CV ({output_format.upper()})", f, file_name=filename)
+    
+    # Check if required fields are filled
+    if not data['name'] or not data['phone'] or not data['email']:
+        st.error("Nama, Nomor Telepon, dan Email harus diisi.")
+    else:
+        try:
+            filename = generate_cv(data, photo_path, output_format)
+            st.success(f"✅ CV berhasil dibuat: {filename}")
+            with open(filename, "rb") as f:
+                st.download_button(f"📥 Download CV ({output_format.upper()})", f, file_name=filename)
+        except Exception as e:
+            st.error(f"Terjadi kesalahan saat membuat CV: {str(e)}")
+
+# Clean up temporary photo file
+if photo_path and os.path.exists(photo_path):
+    try:
+        os.remove(photo_path)
+    except:
+        pass
+
