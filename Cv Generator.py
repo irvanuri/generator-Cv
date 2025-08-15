@@ -100,12 +100,12 @@ experience = []
 exp_count = st.number_input("Jumlah pengalaman kerja", min_value=0, max_value=10, value=0)
 for i in range(exp_count):
     st.subheader(f"Pengalaman #{i+1}")
-    company = st.text_input(f"Perusahaan #{i+1}", "")
-    job_title = st.text_input(f"Jabatan #{i+1}", "")
-    location_exp = st.text_input(f"Lokasi #{i+1}", "")
-    start_date = st.text_input(f"Tanggal Mulai #{i+1}", "")
-    end_date = st.text_input(f"Tanggal Selesai #{i+1}", "")
-    tasks = st.text_area(f"Tugas/Pencapaian #{i+1} (pisahkan dengan koma)", "").split(",")
+    company = st.text_input(f"Perusahaan #{i+1}", key=f"company_{i}")
+    job_title = st.text_input(f"Jabatan #{i+1}", key=f"job_title_{i}")
+    location_exp = st.text_input(f"Lokasi #{i+1}", key=f"location_exp_{i}")
+    start_date = st.text_input(f"Tanggal Mulai #{i+1}", key=f"start_date_{i}")
+    end_date = st.text_input(f"Tanggal Selesai #{i+1}", key=f"end_date_{i}")
+    tasks = st.text_area(f"Tugas/Pencapaian #{i+1} (pisahkan dengan koma)", key=f"tasks_{i}").split(",")
     experience.append({
         "company": company,
         "job_title": job_title,
@@ -120,10 +120,10 @@ st.header("Pendidikan")
 education = []
 edu_count = st.number_input("Jumlah pendidikan", min_value=0, max_value=5, value=0)
 for i in range(edu_count):
-    school = st.text_input(f"Sekolah/Kampus #{i+1}", "")
-    degree = st.text_input(f"Gelar/Jurusan #{i+1}", "")
-    year = st.text_input(f"Tahun Lulus #{i+1}", "")
-    gpa = st.text_input(f"IPK #{i+1}", "")
+    school = st.text_input(f"Sekolah/Kampus #{i+1}", key=f"school_{i}")
+    degree = st.text_input(f"Gelar/Jurusan #{i+1}", key=f"degree_{i}")
+    year = st.text_input(f"Tahun Lulus #{i+1}", key=f"year_{i}")
+    gpa = st.text_input(f"IPK #{i+1}", key=f"gpa_{i}")
     education.append({"school": school, "degree": degree, "year": year, "gpa": gpa})
 
 # Organisasi
@@ -131,12 +131,12 @@ st.header("Pengalaman Organisasi")
 organizations = []
 org_count = st.number_input("Jumlah organisasi", min_value=0, max_value=10, value=0)
 for i in range(org_count):
-    name_org = st.text_input(f"Nama Organisasi #{i+1}", "")
-    role_org = st.text_input(f"Peran #{i+1}", "")
-    location_org = st.text_input(f"Lokasi #{i+1}", "")
-    start_org = st.text_input(f"Tanggal Mulai #{i+1}", "")
-    end_org = st.text_input(f"Tanggal Selesai #{i+1}", "")
-    desc_org = st.text_area(f"Deskripsi #{i+1} (pisahkan dengan koma)", "").split(",")
+    name_org = st.text_input(f"Nama Organisasi #{i+1}", key=f"name_org_{i}")
+    role_org = st.text_input(f"Peran #{i+1}", key=f"role_org_{i}")
+    location_org = st.text_input(f"Lokasi #{i+1}", key=f"location_org_{i}")
+    start_org = st.text_input(f"Tanggal Mulai #{i+1}", key=f"start_org_{i}")
+    end_org = st.text_input(f"Tanggal Selesai #{i+1}", key=f"end_org_{i}")
+    desc_org = st.text_area(f"Deskripsi #{i+1} (pisahkan dengan koma)", key=f"desc_org_{i}").split(",")
     organizations.append({
         "name": name_org,
         "role": role_org,
@@ -192,4 +192,3 @@ if photo_path and os.path.exists(photo_path):
         os.remove(photo_path)
     except:
         pass
-
