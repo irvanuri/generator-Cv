@@ -4,12 +4,6 @@ from docx.shared import Inches
 from docx2pdf import convert
 import os
 
-# Fungsi ekstrak kata kunci dari Job Description sederhana (split manual)
-def extract_keywords_simple(text):
-    words = text.split()
-    unique_words = list(set([w.strip(",.!?").lower() for w in words if len(w) > 3]))
-    return unique_words[:10]
-
 # Fungsi membuat CV
 def generate_cv(data, photo_path, output_format="docx"):
     doc = Document()
@@ -27,16 +21,12 @@ def generate_cv(data, photo_path, output_format="docx"):
 
     cell2.add_paragraph(data['name']).bold = True
     cell2.add_paragraph(f"{data['phone']} | {data['email']}")
-    cell2.add_paragraph(f"{data['location']}")
-    if data['linkedin']:
-        cell2.add_paragraph(f"LinkedIn: {data['linkedin']}")
-    if data['portfolio']:
-        cell2.add_paragraph(f"Portfolio: {data['portfolio']}")
+    cell2.add_paragraph(f"{data['address']}")
 
     doc.add_paragraph()
 
-    # Ringkasan
-    doc.add_heading("Ringkasan Profil", level=1)
+    # Profil
+    doc.add_heading("Profil Profesional", level=1)
     doc.add_paragraph(data['summary'])
 
     # Pengalaman Kerja
@@ -50,51 +40,47 @@ def generate_cv(data, photo_path, output_format="docx"):
     # Pendidikan
     doc.add_heading("Pendidikan", level=1)
     for edu in data['education']:
-        doc.add_paragraph(f"{edu['degree']} – {edu['school']} ({edu['year']})")
+        doc.add_paragraph(f"{edu['degree']} – {edu['school']} ({edu['year']}) | IPK: {edu['gpa']}")
 
-    # Sertifikasi
-    doc.add_heading("Sertifikasi", level=1)
-    for cert in data['certifications']:
-        doc.add_paragraph(f"{cert['name']} – {cert['issuer']} ({cert['year']})")
+    # Pengalaman Organisasi
+    doc.add_heading("Pengalaman Organisasi", level=1)
+    for org in data['organizations']:
+        doc.add_heading(f"{org['role']} – {org['name']}", level=2)
+        doc.add_paragraph(f"{org['location']} | {org['start_date']} – {org['end_date']}")
+        for desc in org['description']:
+            doc.add_paragraph(f"• {desc}", style='List Bullet')
 
     # Keahlian
-    doc.add_heading("Keahlian", level=1)
+    doc.add_heading("Kemampuan", level=1)
     doc.add_paragraph(f"Hard Skills: {', '.join(data['hard_skills'])}")
     doc.add_paragraph(f"Soft Skills: {', '.join(data['soft_skills'])}")
-    doc.add_paragraph(f"Tools & Software: {', '.join(data['tools'])}")
 
-    # Simpan Word
-    filename_docx = f"CV_ATS_{data['name'].replace(' ', '_')}.docx"
+    # Pencapaian
+    doc.add_heading("Pencapaian Lainnya", level=1)
+    for ach in data['achievements']:
+        doc.add_paragraph(f"• {ach}", style='List Bullet')
+
+    # Simpan file
+    filename_docx = f"CV_{data['name'].replace(' ', '_')}.docx"
     doc.save(filename_docx)
 
-    # Konversi PDF jika dipilih
     if output_format == "pdf":
         filename_pdf = filename_docx.replace(".docx", ".pdf")
         convert(filename_docx, filename_pdf)
         return filename_pdf
     return filename_docx
 
-# ===== STREAMLIT APP =====
-st.set_page_config(page_title="ATS CV Builder (No NLP)", layout="wide")
-st.title("📄 ATS-Friendly CV Builder + Foto (Tanpa NLP)")
 
-# Sidebar Job Description (Opsional)
-st.sidebar.header("Job Description (Opsional)")
-jd_text = st.sidebar.text_area("Tempel Job Description di sini")
-jd_file = st.sidebar.file_uploader("atau Upload File .txt", type=["txt"])
-if jd_file:
-    jd_text = jd_file.read().decode("utf-8")
-
-jd_keywords = extract_keywords_simple(jd_text) if jd_text else []
+# ===== STREAMLIT UI =====
+st.set_page_config(page_title="CV Builder", layout="wide")
+st.title("📄 CV Builder Heppy Nugraha")
 
 # Informasi Pribadi
 st.header("Informasi Pribadi")
-name = st.text_input("Nama Lengkap")
-phone = st.text_input("Nomor Telepon")
-email = st.text_input("Email Profesional")
-location = st.text_input("Lokasi Domisili")
-linkedin = st.text_input("LinkedIn URL", "")
-portfolio = st.text_input("Portfolio / GitHub", "")
+name = st.text_input("Nama Lengkap", "HEPPY NUGRAHA, S.P")
+phone = st.text_input("Nomor Telepon", "+6285250101045")
+email = st.text_input("Email", "hepiebleeding@gmail.com")
+address = st.text_area("Alamat", "Jl. Tari Dewa-Dewa 1 No. 17 RT. 14, Kelurahan Guntung, Kecamatan Bontang Utara, Kota Bontang, Kalimantan Timur")
 
 # Upload Foto
 photo_file = st.file_uploader("Upload Foto (Opsional)", type=["jpg", "jpeg", "png"])
@@ -104,14 +90,14 @@ if photo_file:
     with open(photo_path, "wb") as f:
         f.write(photo_file.read())
 
-# Ringkasan Profil
-st.header("Ringkasan Profil")
-summary = st.text_area("Deskripsikan profil singkat Anda (2-3 kalimat)")
+# Profil
+st.header("Profil Profesional")
+summary = st.text_area("Ringkasan Profil", "Saya Lulusan baru di bidang Agroteknologi dengan kemampuan riset dan kerja tim yang baik...")
 
 # Pengalaman Kerja
 st.header("Pengalaman Kerja")
 experience = []
-exp_count = st.number_input("Jumlah pengalaman kerja", min_value=0, max_value=10, step=1)
+exp_count = st.number_input("Jumlah pengalaman kerja", min_value=0, max_value=10, value=2)
 for i in range(exp_count):
     st.subheader(f"Pengalaman #{i+1}")
     company = st.text_input(f"Perusahaan #{i+1}")
@@ -119,68 +105,73 @@ for i in range(exp_count):
     location_exp = st.text_input(f"Lokasi #{i+1}")
     start_date = st.text_input(f"Tanggal Mulai #{i+1}")
     end_date = st.text_input(f"Tanggal Selesai #{i+1}")
-    tasks_raw = st.text_area(f"Tugas & Pencapaian (pisahkan dengan koma) #{i+1}").split(",")
-    tasks_clean = [t.strip() for t in tasks_raw if t.strip()]
-
-    # Tambahkan kata kunci JD (opsional)
-    for kw in jd_keywords:
-        if kw.lower() not in " ".join(tasks_clean).lower():
-            tasks_clean.append(f"Pengalaman terkait {kw}")
-
+    tasks = st.text_area(f"Tugas/Pencapaian #{i+1} (pisahkan dengan koma)").split(",")
     experience.append({
         "company": company,
         "job_title": job_title,
         "location": location_exp,
         "start_date": start_date,
         "end_date": end_date,
-        "tasks": tasks_clean
+        "tasks": [t.strip() for t in tasks if t.strip()]
     })
 
 # Pendidikan
 st.header("Pendidikan")
 education = []
-edu_count = st.number_input("Jumlah pendidikan", min_value=0, max_value=5, step=1)
+edu_count = st.number_input("Jumlah pendidikan", min_value=0, max_value=5, value=1)
 for i in range(edu_count):
-    school = st.text_input(f"Sekolah/Kampus #{i+1}")
-    degree = st.text_input(f"Gelar/Jurusan #{i+1}")
-    year = st.text_input(f"Tahun Lulus #{i+1}")
-    education.append({"school": school, "degree": degree, "year": year})
+    school = st.text_input(f"Sekolah/Kampus #{i+1}", "Universitas Mercu Buana Yogyakarta")
+    degree = st.text_input(f"Gelar/Jurusan #{i+1}", "Sarjana Agroteknologi")
+    year = st.text_input(f"Tahun Lulus #{i+1}", "2024")
+    gpa = st.text_input(f"IPK #{i+1}", "3.29/4.00")
+    education.append({"school": school, "degree": degree, "year": year, "gpa": gpa})
 
-# Sertifikasi
-st.header("Sertifikasi")
-certifications = []
-cert_count = st.number_input("Jumlah sertifikasi", min_value=0, max_value=10, step=1)
-for i in range(cert_count):
-    cert_name = st.text_input(f"Nama Sertifikat #{i+1}")
-    issuer = st.text_input(f"Penerbit #{i+1}")
-    cert_year = st.text_input(f"Tahun #{i+1}")
-    certifications.append({"name": cert_name, "issuer": issuer, "year": cert_year})
+# Organisasi
+st.header("Pengalaman Organisasi")
+organizations = []
+org_count = st.number_input("Jumlah organisasi", min_value=0, max_value=10, value=3)
+for i in range(org_count):
+    name_org = st.text_input(f"Nama Organisasi #{i+1}")
+    role_org = st.text_input(f"Peran #{i+1}")
+    location_org = st.text_input(f"Lokasi #{i+1}")
+    start_org = st.text_input(f"Tanggal Mulai #{i+1}")
+    end_org = st.text_input(f"Tanggal Selesai #{i+1}")
+    desc_org = st.text_area(f"Deskripsi #{i+1} (pisahkan dengan koma)").split(",")
+    organizations.append({
+        "name": name_org,
+        "role": role_org,
+        "location": location_org,
+        "start_date": start_org,
+        "end_date": end_org,
+        "description": [d.strip() for d in desc_org if d.strip()]
+    })
 
 # Keahlian
-st.header("Keahlian")
+st.header("Kemampuan")
 hard_skills = st.text_area("Hard Skills (pisahkan dengan koma)").split(",")
 soft_skills = st.text_area("Soft Skills (pisahkan dengan koma)").split(",")
-tools = st.text_area("Tools & Software (pisahkan dengan koma)").split(",")
+
+# Pencapaian
+st.header("Pencapaian Lainnya")
+achievements = st.text_area("Pencapaian (pisahkan dengan koma)").split(",")
 
 # Pilihan Output
 output_format = st.selectbox("Pilih format output CV", ["docx", "pdf"])
 
-# Generate CV
+# Generate
 if st.button("🚀 Generate CV"):
     data = {
         "name": name,
         "phone": phone,
         "email": email,
-        "location": location,
-        "linkedin": linkedin,
-        "portfolio": portfolio,
+        "address": address,
         "summary": summary,
         "experience": experience,
         "education": education,
-        "certifications": certifications,
+        "organizations": organizations,
         "hard_skills": [x.strip() for x in hard_skills if x.strip()],
         "soft_skills": [x.strip() for x in soft_skills if x.strip()],
-        "tools": [x.strip() for x in tools if x.strip()]
+        "achievements": [x.strip() for x in achievements if x.strip()]
     }
     filename = generate_cv(data, photo_path, output_format)
     st.success(f"✅ CV berhasil dibuat: {filename}")
