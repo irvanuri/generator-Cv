@@ -98,8 +98,8 @@ def generate_cv(data, photo_path, output_format="docx"):
     return filename_docx
 
 # ===== Streamlit App =====
-st.set_page_config(page_title="ATS CV Builder + Optimizer", layout="wide")
-st.title("📄 ATS-Friendly CV Builder + Foto + Optimisasi")
+st.set_page_config(page_title="ATS CV Builder", layout="wide")
+st.title("📄 ATS-Friendly CV Builder ")
 
 # Job Description Upload
 st.sidebar.header("Job Description (Opsional)")
@@ -134,7 +134,7 @@ summary = st.text_area("Deskripsikan profil singkat Anda (2-3 kalimat)")
 # Pengalaman Kerja
 st.header("Pengalaman Kerja")
 experience = []
-exp_count = st.number_input("Jumlah pengalaman kerja", min_value=0, max_value=10, step=1)
+exp_count = st.number_input("Tulisan berapa banyak pengalaman kerja(Angka)", min_value=0, max_value=10, step=1)
 for i in range(exp_count):
     st.subheader(f"Pengalaman #{i+1}")
     company = st.text_input(f"Perusahaan #{i+1}")
@@ -166,7 +166,7 @@ for i in range(exp_count):
 # Pendidikan
 st.header("Pendidikan")
 education = []
-edu_count = st.number_input("Jumlah pendidikan", min_value=0, max_value=5, step=1)
+edu_count = st.number_input("Tuliskan jumlah pendidikan yang ingin diinput", min_value=0, max_value=5, step=1)
 for i in range(edu_count):
     school = st.text_input(f"Sekolah/Kampus #{i+1}")
     degree = st.text_input(f"Gelar/Jurusan #{i+1}")
@@ -176,7 +176,7 @@ for i in range(edu_count):
 # Sertifikasi
 st.header("Sertifikasi")
 certifications = []
-cert_count = st.number_input("Jumlah sertifikasi", min_value=0, max_value=10, step=1)
+cert_count = st.number_input("Tuliskan Jumlah sertifikasi yang ingin diinput", min_value=0, max_value=10, step=1)
 for i in range(cert_count):
     cert_name = st.text_input(f"Nama Sertifikat #{i+1}")
     issuer = st.text_input(f"Penerbit #{i+1}")
@@ -213,3 +213,4 @@ if st.button("🚀 Generate CV"):
     st.success(f"CV berhasil dibuat: {filename}")
     with open(filename, "rb") as f:
         st.download_button(f"📥 Download CV ({output_format.upper()})", f, file_name=filename)
+
